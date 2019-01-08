@@ -26,7 +26,17 @@
     <TextView
             android:id="@+id/salida"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:text=""
             android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+    <ProgressBar
+            android:id="@+id/determinateBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:progress="0"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:visibility="invisible"
+    />
+
 </LinearLayout>

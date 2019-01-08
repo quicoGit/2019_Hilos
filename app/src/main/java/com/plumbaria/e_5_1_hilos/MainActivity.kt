@@ -7,6 +7,8 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.ProgressBar
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var entrada:EditText
@@ -63,14 +65,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     /* AsyncTask <Parametros,Progreso,Resultado> */
-    inner class MiTarea: AsyncTask<Int, Void, Int>(){
+    inner class MiTarea: AsyncTask<Int, Int, Int>(){
+        /* progressDialog está deprecated y esta es la alternativa actual */
+        private lateinit var barraProgreso:ProgressBar
+        override fun onPreExecute() {
+            barraProgreso = findViewById(R.id.determinateBar)
+            barraProgreso.progress = 0
+            barraProgreso.visibility = View.VISIBLE
+        }
+
         override fun doInBackground(vararg params: Int?): Int {
             var parametro:Int = params[0] as Int
-            return factorial(parametro)
+            var progreso = 0
+            var res = 1
+            for (i in 1..parametro){
+                res *= i
+                SystemClock.sleep(1000)
+                progreso = (i*100) / parametro
+                publishProgress(progreso)
+            }
+            return res
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {
+            var parametro:Int = values[0] as Int
+            barraProgreso.progress = parametro
         }
 
         override fun onPostExecute(result: Int?) {
+            barraProgreso.visibility = View.INVISIBLE
             salida.append(result.toString() + "\n")
         }
+
+
     }
 }
