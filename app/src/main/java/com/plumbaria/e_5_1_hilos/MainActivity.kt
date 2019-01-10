@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.ProgressBar
 import android.app.ProgressDialog
 import android.content.DialogInterface
+import android.os.Message
 
 
 
@@ -62,7 +63,9 @@ class MainActivity : AppCompatActivity() {
 
         override fun run() {
             res = factorial(n)
-            salida.append("" + res + "\n")
+            runOnUiThread(Runnable {
+                salida.append("" + res + "\n")
+            })
         }
 
     }
@@ -103,47 +106,52 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    inner class MiTareaConPorgressDialog : AsyncTask<Int, Int, Int>(),DialogInterface.OnCancelListener{
-        private lateinit var progressDialaog:ProgressDialog
+    inner class MiTareaConPorgressDialog : AsyncTask<Int, Int, Int>() {
+        private lateinit var progressDialog:ProgressDialog
         override fun onPreExecute() {
-            progressDialaog = ProgressDialog(this@MainActivity)
-            progressDialaog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
-            progressDialaog.setMessage("Calculando...")
-            progressDialaog.setCancelable(true)
-            progressDialaog.max = 100
-            progressDialaog.progress = 0
-            progressDialaog.show()
-
-            progressDialaog.setOnCancelListener(this)
+            progressDialog = ProgressDialog(this@MainActivity)
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+            progressDialog.setMessage("Calculando...")
+            progressDialog.setCancelable(true)
+            progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar", {
+                    dialog,
+                    which -> this.cancel(true)
+            })
+            progressDialog.max = 100
+            progressDialog.progress = 0
+            progressDialog.show()
+            progressDialog.setOnCancelListener {
+                salida.append("\n Proceso cancelado \n")
+            }
 
         }
-
-        override fun onCancel(dialog: DialogInterface?) {
-            this.cancel(true)
-        }
-
+        /*
+            override fun onCancel(dialog: DialogInterface?) {
+                this.cancel(true)
+            }
+    */
         override fun doInBackground(vararg params: Int?): Int {
             var parametro:Int = params[0] as Int
             var progreso = 0
             var res = 1
             for (i in 1..parametro){
-                if(!isCancelled()) {
-                    res *= i
-                    SystemClock.sleep(1000)
-                    progreso = (i * 100) / parametro
-                    publishProgress(progreso)
-                }
+                if(isCancelled) break
+                res *= i
+                SystemClock.sleep(1000)
+                progreso = (i * 100) / parametro
+                publishProgress(progreso)
+
             }
             return res
         }
 
         override fun onProgressUpdate(vararg values: Int?) {
             var parametro:Int = values[0] as Int
-            progressDialaog.progress = parametro
+            progressDialog.progress = parametro
         }
 
         override fun onPostExecute(result: Int?) {
-            progressDialaog.dismiss()
+            progressDialog.dismiss()
             salida.append(result.toString() + "\n")
         }
 
